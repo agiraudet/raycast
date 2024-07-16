@@ -3,6 +3,6 @@
 
 namespace rl {
 #include "raylib.h"
-}
+};
 
 #endif // RAYLIB_WRAPPER_H

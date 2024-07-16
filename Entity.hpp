@@ -2,6 +2,7 @@
 #define ENTITY_HPP
 
 #include "Map.hpp"
+#include "Renderer.hpp"
 
 class Entity {
 public:
@@ -16,14 +17,17 @@ public:
   void setX(double x);
   void setY(double y);
   void move(double deltaX, double deltaY);
-  void render(void);
-  void raycast(Map &map);
+  void render();
+  void raycast(Rend &rend, Map &map);
   void rotate(int dir);
   void move(Map &map);
 
 private:
-  double _emitRay(Map &map, int x, int &side);
-  void _drawStrip(double perpWallDist, int side, int x);
+  double _emitRay(Rend &rend, Map &map, int x);
+  /*void _drawStrip(double perpWallDist, int side, int x);*/
+  void _drawStrip(Rend &rend, double perpWallDist, int texX, Texture &tex,
+                  int side, int x);
+  void castFloor(Rend &rend, Texture &texFloor, Texture &texCeil);
 
 private:
   double _moveSpeed;

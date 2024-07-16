@@ -1,13 +1,12 @@
 #ifndef TEXTURE_HPP
 #define TEXTURE_HPP
 
-#include <cstddef>
-#include <cstdint>
 #include <string>
 
-namespace rl {
-#include "raylib.h"
-}
+#include "RaylibWrapper.hpp"
+#include "Renderer.hpp"
+#include <cstddef>
+#include <cstdint>
 
 class Texture {
 public:
@@ -18,9 +17,17 @@ public:
   Texture &operator=(const Texture &other);
   ~Texture();
 
+  int getWidth(void);
+  int getHeight(void);
   bool loadFromXPM(const std::string &filePath);
   rl::Color uint32ToRGBA(uint32_t color);
-  void draw(int posX, int posY);
+  rl::Color uint32ToRGBA(uint32_t color, int lumMod);
+  rl::Color getPixColor(int x, int y);
+  uint32_t getPix(int x, int y);
+  void draw(Rend &rend, int posX, int posY);
+  void drawStrip(Rend &rend, int drawStart, int drawEnd, int texX, int destX);
+  void drawStrip(Rend &rend, int drawStart, int drawEnd, int texX, int destX,
+                 int lumMod);
 
 private:
   void _resize();

@@ -1,14 +1,12 @@
 #include "Texture.hpp"
+#include "Window.hpp"
 #include "XpmData.hpp"
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
-#include <fstream>
-#include <iostream>
-#include <sstream>
+#include <raylib.h>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 Texture::Texture(void) : _width(0), _height(0), _tex(nullptr) {}
 
@@ -51,6 +49,10 @@ Texture::~Texture(void) {
     delete[] _tex;
 }
 
+int Texture::getWidth() { return _width; }
+
+int Texture::getHeight() { return _height; }
+
 rl::Color Texture::uint32ToRGBA(uint32_t color) {
   rl::Color rlColor;
   rlColor.r = (color >> 16) & 0xFF;
@@ -60,10 +62,61 @@ rl::Color Texture::uint32ToRGBA(uint32_t color) {
   return rlColor;
 }
 
-void Texture::draw(int posX, int posY) {
+rl::Color Texture::uint32ToRGBA(uint32_t color, int lumMod) {
+  rl::Color rlColor = uint32ToRGBA(color);
+  rlColor.r /= lumMod;
+  rlColor.g /= lumMod;
+  rlColor.b /= lumMod;
+  return rlColor;
+}
+
+rl::Color Texture::getPixColor(int x, int y) {
+  return uint32ToRGBA(_tex[y * _width + x]);
+}
+
+uint32_t Texture::getPix(int x, int y) { return _tex[y * _width + x]; }
+
+void Texture::draw(Rend &rend, int posX, int posY) {
   for (size_t y = 0; y < _height; y++) {
     for (size_t x = 0; x < _width; x++) {
-      rl::DrawPixel(posX + x, posY + y, uint32ToRGBA(_tex[y * _width + x]));
+      /*rl::DrawPixel(posX + x, posY + y, uint32ToRGBA(_tex[y * _width + x]));*/
+      rend.putPixel(posX + x, posY + y, _tex[y * _width + x]);
     }
+  }
+}
+
+void Texture::drawStrip(Rend &rend, int drawStart, int drawEnd, int texX,
+                        int destX) {
+  int drawLen = drawEnd - drawStart;
+  double step = (double)_height / (double)drawLen;
+
+  double texY = 0;
+  for (int y = drawStart; y < drawEnd && y < SCREEN_HEIGHT; y++) {
+    if (y < 0) {
+      y = 0;
+      texY += step * abs(drawStart);
+    }
+    uint32_t texPix = _tex[(int)texY * _width + texX];
+    /*rl::DrawPixel(destX, y, uint32ToRGBA(texPix));*/
+    rend.putPixel(destX, y, texPix);
+    texY += step;
+  }
+}
+
+void Texture::drawStrip(Rend &rend, int drawStart, int drawEnd, int texX,
+                        int destX, int lumMod) {
+  int drawLen = drawEnd - drawStart;
+  double step = (double)_height / (double)drawLen;
+
+  double texY = 0;
+  for (int y = drawStart; y < drawEnd && y < SCREEN_HEIGHT; y++) {
+    if (y < 0) {
+      y = 0;
+      texY += step * abs(drawStart);
+    }
+    uint32_t texPix = _tex[(int)texY * _width + texX];
+    /*rl::DrawPixel(destX, y, uint32ToRGBA(texPix, lumMod));*/
+    rend.putPixel(destX, y, uint32ToRGBA(texPix, lumMod));
+    texY += step;
   }
 }

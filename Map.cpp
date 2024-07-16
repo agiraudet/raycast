@@ -93,6 +93,10 @@ void Map::render(size_t cellSize, size_t posX, size_t posY) {
   }
 }
 
+Texture &Map::getTex(char c) { return _texMap[c]; }
+
+void Map::setTex(char c, Texture tex) { _texMap[c] = tex; }
+
 std::ostream &operator<<(std::ostream &os, const Map &map) {
   for (size_t i = 0; i < map._height; ++i) {
     for (size_t j = 0; j < map._width; ++j) {

@@ -90,8 +90,6 @@ bool XpmData::_readHeader(void) {
   std::istringstream headerStream(_rawData[_headerPos]);
   headerStream.ignore(1);
   headerStream >> _width >> _height >> _nColors >> _charPerPixel;
-  std::cout << "header: " << _headerPos << _width << _height << _nColors
-            << _charPerPixel << std::endl;
   if (_data)
     delete[] _data;
   _data = new uint32_t[_width * _height];
@@ -115,8 +113,6 @@ bool XpmData::_readColorMap(void) {
       std::string colorValue = colorEntry.substr(_charPerPixel + 5);
       _colorMap[colorSymbol] = std::stoul(colorValue, nullptr, 16);
     }
-    std::cout << "color: |" << colorSymbol << "| " << _colorMap[colorSymbol]
-              << std::endl;
   }
   return true;
 }
@@ -129,8 +125,6 @@ bool XpmData::_readData(void) {
     std::cerr << "XpmData: Could not find data." << std::endl;
     return false;
   }
-  std::cout << "Data: " << _width << " " << _height << " " << _dataPos
-            << std::endl;
   for (int y = 0; y < _height; y++) {
     std::string row = _rawData[_dataPos + y];
     for (int x = 0; x < _width; x++) {

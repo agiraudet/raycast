@@ -1,8 +1,7 @@
 #include "Entity.hpp"
-#include "RaylibWrapper.hpp"
 #include "Window.hpp"
-#include <cmath>
 #include <math.h>
+#include <raylib.h>
 
 Entity::Entity() : _posX(0.0), _posY(0.0) {}
 
@@ -38,11 +37,10 @@ void Entity::move(double deltaX, double deltaY) {
 
 void Entity::render(void) { DrawCircle(_posX, _posY, 20., rl::RED); }
 
-void Entity::raycast(Map &map) {
+void Entity::raycast(Rend &rend, Map &map) {
+  castFloor(rend, map.getTex('f'), map.getTex('c'));
   for (int x = 0; x < SCREEN_WIDTH; x++) {
-    int side = 0;
-    double perpWallDist = _emitRay(map, x, side);
-    _drawStrip(perpWallDist, side, x);
+    _emitRay(rend, map, x);
   }
 }
 
@@ -77,7 +75,37 @@ void Entity::move(Map &map) {
   }
 }
 
-double Entity::_emitRay(Map &map, int x, int &side) {
+void Entity::castFloor(Rend &rend, Texture &texFloor, Texture &texCeil) {
+  for (int y = 0; y < SCREEN_HEIGHT; y++) {
+    float rayDirX0 = _dirX - _planX;
+    float rayDirY0 = _dirY - _planY;
+    float rayDirX1 = _dirX + _planX;
+    float rayDirY1 = _dirY + _planY;
+    int p = y - SCREEN_HEIGHT / 2;
+    float posZ = 0.5 * SCREEN_HEIGHT;
+    float rowDist = posZ / p;
+    float floorStepX = rowDist * (rayDirX1 - rayDirX0) / SCREEN_WIDTH;
+    float floorStepY = rowDist * (rayDirY1 - rayDirY0) / SCREEN_WIDTH;
+    float floorX = _posX + rowDist * rayDirX0;
+    float floorY = _posY + rowDist * rayDirY0;
+    for (int x = 0; x < SCREEN_WIDTH; x++) {
+      int cellX = (int)(floorX);
+      int cellY = (int)(floorY);
+      int tx = (int)(texFloor.getWidth() * (floorX - cellX)) &
+               (texFloor.getWidth() - 1);
+      int ty = (int)(texFloor.getHeight() * (floorY - cellY)) &
+               (texFloor.getHeight() - 1);
+      floorX += floorStepX;
+      floorY += floorStepY;
+      /*rl::DrawPixel(x, y, texFloor.getPixColor(tx, ty));*/
+      /*rl::DrawPixel(x, SCREEN_HEIGHT - y - 1, texCeil.getPixColor(tx, ty));*/
+      rend.putPixel(x, y, texFloor.getPix(tx, ty));
+      rend.putPixel(x, SCREEN_HEIGHT - y - 1, texCeil.getPix(tx, ty));
+    }
+  }
+}
+
+double Entity::_emitRay(Rend &rend, Map &map, int x) {
   double cameraX = 2 * x / double(SCREEN_WIDTH) - 1;
   double rayDirX = _dirX + _planX * cameraX;
   double rayDirY = _dirY + _planY * cameraX;
@@ -87,7 +115,8 @@ double Entity::_emitRay(Map &map, int x, int &side) {
   double deltaDistX = (rayDirX == 0) ? 1e30 : std::abs(1 / rayDirX);
   double deltaDistY = (rayDirY == 0) ? 1e30 : std::abs(1 / rayDirY);
   int stepX, stepY;
-  int hit = 0;
+  char hit = 0;
+  int side = 0;
 
   if (rayDirX < 0) {
     stepX = -1;
@@ -114,20 +143,32 @@ double Entity::_emitRay(Map &map, int x, int &side) {
       side = 1;
     }
     if (map.at(mapX, mapY) != '.')
-      hit = 1;
+      hit = map.at(mapX, mapY);
   }
-  return side == 0 ? sideDistX - deltaDistX : sideDistY - deltaDistY;
+  double perpWallDist =
+      side == 0 ? sideDistX - deltaDistX : sideDistY - deltaDistY;
+  double wallX = side == 0 ? _posY + perpWallDist * rayDirY
+                           : _posX + perpWallDist * rayDirX;
+  wallX -= floor(wallX);
+  Texture &tex = map.getTex(hit);
+  int texWidth = tex.getWidth();
+  int texX = int(wallX * double(texWidth));
+  if (side == 0 && rayDirX > 0)
+    texX = texWidth - texX - 1;
+  if (side == 1 && rayDirY < 0)
+    texX = texWidth - texX - 1;
+  _drawStrip(rend, perpWallDist, texX, tex, side, x);
+  return 0;
 }
 
-void Entity::_drawStrip(double perpWallDist, int side, int x) {
+void Entity::_drawStrip(Rend &rend, double perpWallDist, int texX, Texture &tex,
+                        int side, int x) {
   int lineHeight = (int)(SCREEN_HEIGHT / perpWallDist);
   int drawStart = -lineHeight / 2 + SCREEN_HEIGHT / 2;
-  if (drawStart < 0)
-    drawStart = 0;
   int drawEnd = lineHeight / 2 + SCREEN_HEIGHT / 2;
-  if (drawEnd >= SCREEN_HEIGHT)
-    drawEnd = SCREEN_HEIGHT - 1;
 
-  rl::Color color = side == 1 ? rl::PINK : rl::PURPLE;
-  rl::DrawLine(x, drawStart, x, drawEnd, color);
+  if (side == 0)
+    tex.drawStrip(rend, drawStart, drawEnd, texX, x, 2);
+  else
+    tex.drawStrip(rend, drawStart, drawEnd, texX, x);
 }
