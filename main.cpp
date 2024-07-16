@@ -2,11 +2,13 @@
 #include "Map.hpp"
 #include "RaylibWrapper.hpp"
 #include "Renderer.hpp"
+#include "Sprite.hpp"
 #include "Texture.hpp"
 #include "Window.hpp"
 #include <cstdlib>
 #include <exception>
 #include <iostream>
+#include <vector>
 
 int main(int argc, char **argv) {
   if (argc < 5) {
@@ -24,6 +26,10 @@ int main(int argc, char **argv) {
   map.setTex('w', Texture(argv[2]));
   map.setTex('f', Texture(argv[3]));
   map.setTex('c', Texture(argv[4]));
+  std::vector<Sprite> sprtVec;
+
+  sprtVec.push_back(Sprite(Texture(argv[5]), 10, 12));
+  sprtVec.push_back(Sprite(Texture(argv[5]), 12, 12));
   Entity plr(10, 15);
 
   std::cout << map << std::endl;
@@ -33,11 +39,8 @@ int main(int argc, char **argv) {
   Rend rend;
   while (!rl::WindowShouldClose()) {
     plr.move(map);
-    /*rl::BeginDrawing();*/
-    /*ClearBackground(rl::BLACK);*/
     plr.raycast(rend, map);
+    plr.drawSprite(rend, sprtVec);
     rend.render();
-    /*map.render(5, 10, 10);*/
-    /*rl::EndDrawing();*/
   }
 }

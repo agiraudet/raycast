@@ -3,6 +3,9 @@
 
 #include "Map.hpp"
 #include "Renderer.hpp"
+#include "Sprite.hpp"
+#include "Window.hpp"
+#include <vector>
 
 class Entity {
 public:
@@ -21,6 +24,7 @@ public:
   void raycast(Rend &rend, Map &map);
   void rotate(int dir);
   void move(Map &map);
+  void drawSprite(Rend &rend, std::vector<Sprite> &spriteVec);
 
 private:
   double _emitRay(Rend &rend, Map &map, int x);
@@ -28,8 +32,10 @@ private:
   void _drawStrip(Rend &rend, double perpWallDist, int texX, Texture &tex,
                   int side, int x);
   void castFloor(Rend &rend, Texture &texFloor, Texture &texCeil);
+  void sortSprites(std::vector<Sprite> &spriteVec);
 
 private:
+  double _Zbuffer[SCREEN_WIDTH];
   double _moveSpeed;
   double _rotSpeed;
   double _posX;

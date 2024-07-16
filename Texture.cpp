@@ -97,8 +97,8 @@ void Texture::drawStrip(Rend &rend, int drawStart, int drawEnd, int texX,
       texY += step * abs(drawStart);
     }
     uint32_t texPix = _tex[(int)texY * _width + texX];
-    /*rl::DrawPixel(destX, y, uint32ToRGBA(texPix));*/
-    rend.putPixel(destX, y, texPix);
+    if (texPix)
+      rend.putPixel(destX, y, texPix);
     texY += step;
   }
 }
@@ -115,7 +115,6 @@ void Texture::drawStrip(Rend &rend, int drawStart, int drawEnd, int texX,
       texY += step * abs(drawStart);
     }
     uint32_t texPix = _tex[(int)texY * _width + texX];
-    /*rl::DrawPixel(destX, y, uint32ToRGBA(texPix, lumMod));*/
     rend.putPixel(destX, y, uint32ToRGBA(texPix, lumMod));
     texY += step;
   }

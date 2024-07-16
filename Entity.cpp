@@ -1,7 +1,10 @@
 #include "Entity.hpp"
 #include "Window.hpp"
+#include <algorithm>
+#include <cstdlib>
+#include <iostream>
 #include <math.h>
-#include <raylib.h>
+#include <vector>
 
 Entity::Entity() : _posX(0.0), _posY(0.0) {}
 
@@ -45,7 +48,7 @@ void Entity::raycast(Rend &rend, Map &map) {
 }
 
 void Entity::rotate(int dir) {
-  dir = dir > 0 ? 1 : -1;
+  /*dir = dir > 0 ? 1 : -1;*/
   double odlDirX = _dirX;
   _dirX = _dirX * cos(_rotSpeed * dir) - _dirY * sin(_rotSpeed * dir);
   _dirY = odlDirX * sin(_rotSpeed * dir) + _dirY * cos(_rotSpeed * dir);
@@ -55,22 +58,38 @@ void Entity::rotate(int dir) {
 }
 
 void Entity::move(Map &map) {
-  if (IsKeyDown(rl::KEY_UP)) {
+  if (IsKeyDown(rl::KEY_W)) {
     if (map.at(_posX + _dirX * _moveSpeed, _posY) == '.')
       _posX += _dirX * _moveSpeed;
     if (map.at(_posX, _posY + _dirY * _moveSpeed) == '.')
       _posY += _dirY * _moveSpeed;
   }
-  if (IsKeyDown(rl::KEY_DOWN)) {
+  if (IsKeyDown(rl::KEY_S)) {
     if (map.at(_posX - _dirX * _moveSpeed, _posY) == '.')
       _posX -= _dirX * _moveSpeed;
     if (map.at(_posX, _posY - _dirY * _moveSpeed) == '.')
       _posY -= _dirY * _moveSpeed;
   }
-  if (IsKeyDown(rl::KEY_RIGHT)) {
+  /*if (IsKeyDown(rl::KEY_Q)) {*/
+  /*  float strafeX = -_dirY * _moveSpeed;*/
+  /*  float strafeY = _dirX * _moveSpeed;*/
+  /*  if (map.at(_posX + strafeX, _posY) == '.')*/
+  /*    _posX += strafeX;*/
+  /*  if (map.at(_posX, _posY + strafeY) == '.')*/
+  /*    _posY += strafeY;*/
+  /*}*/
+  /*if (IsKeyDown(rl::KEY_E)) {*/
+  /*  float strafeX = _dirY * _moveSpeed;*/
+  /*  float strafeY = -_dirX * _moveSpeed;*/
+  /*  if (map.at(_posX + strafeX, _posY) == '.')*/
+  /*    _posX += strafeX;*/
+  /*  if (map.at(_posX, _posY + strafeY) == '.')*/
+  /*    _posY += strafeY;*/
+  /*}*/
+  if (IsKeyDown(rl::KEY_D)) {
     rotate(-1);
   }
-  if (IsKeyDown(rl::KEY_LEFT)) {
+  if (IsKeyDown(rl::KEY_A)) {
     rotate(1);
   }
 }
@@ -97,8 +116,6 @@ void Entity::castFloor(Rend &rend, Texture &texFloor, Texture &texCeil) {
                (texFloor.getHeight() - 1);
       floorX += floorStepX;
       floorY += floorStepY;
-      /*rl::DrawPixel(x, y, texFloor.getPixColor(tx, ty));*/
-      /*rl::DrawPixel(x, SCREEN_HEIGHT - y - 1, texCeil.getPixColor(tx, ty));*/
       rend.putPixel(x, y, texFloor.getPix(tx, ty));
       rend.putPixel(x, SCREEN_HEIGHT - y - 1, texCeil.getPix(tx, ty));
     }
@@ -158,6 +175,7 @@ double Entity::_emitRay(Rend &rend, Map &map, int x) {
   if (side == 1 && rayDirY < 0)
     texX = texWidth - texX - 1;
   _drawStrip(rend, perpWallDist, texX, tex, side, x);
+  _Zbuffer[x] = perpWallDist;
   return 0;
 }
 
@@ -171,4 +189,50 @@ void Entity::_drawStrip(Rend &rend, double perpWallDist, int texX, Texture &tex,
     tex.drawStrip(rend, drawStart, drawEnd, texX, x, 2);
   else
     tex.drawStrip(rend, drawStart, drawEnd, texX, x);
+}
+
+void Entity::sortSprites(std::vector<Sprite> &spriteVec) {
+  for (auto &sprite : spriteVec) {
+    double dist = ((_posX - sprite.getX()) * (_posX - sprite.getX()) +
+                   (_posY - sprite.getY()) * (_posY * sprite.getY()));
+    sprite.setDist(dist);
+  }
+  std::sort(spriteVec.begin(), spriteVec.end(),
+            [](Sprite &a, Sprite &b) { return a.getDist() > b.getDist(); });
+}
+
+void Entity::drawSprite(Rend &rend, std::vector<Sprite> &spriteVec) {
+  sortSprites(spriteVec);
+
+  for (auto &sprite : spriteVec) {
+
+    double spriteX = sprite.getX() - _posX;
+    double spriteY = sprite.getY() - _posY;
+    double invDet = 1.0 / (_planX * _dirY - _dirX * _planY);
+    double transformX = invDet * (_dirY * spriteX - _dirX * spriteY);
+    double transformY = invDet * (-_planY * spriteX + _planX * spriteY);
+
+    int spriteScreenX = int((SCREEN_WIDTH / 2) * (1 + transformX / transformY));
+    int spriteHeight = abs(int(SCREEN_HEIGHT / (transformY)));
+    int drawStartY = -spriteHeight / 2 + SCREEN_HEIGHT / 2;
+    /*drawStartY = drawStartY < 0 ? 0 : drawStartY;*/
+    int drawEndY = spriteHeight / 2 + SCREEN_HEIGHT / 2;
+    /*drawEndY = drawEndY >= SCREEN_HEIGHT ? SCREEN_HEIGHT - 1 : drawEndY;*/
+
+    int spriteWidth = abs(int(SCREEN_HEIGHT / (transformY)));
+    int drawStartX = -spriteWidth / 2 + spriteScreenX;
+    drawStartX = drawStartX < 0 ? 0 : drawStartX;
+    int drawEndX = spriteWidth / 2 + spriteScreenX;
+    drawEndX = drawEndX >= SCREEN_WIDTH ? SCREEN_WIDTH - 1 : drawEndX;
+
+    for (int stripe = drawStartX; stripe < drawEndX; stripe++) {
+      int texX = int(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) *
+                     sprite.getTexWidth() / spriteWidth) /
+                 256;
+      if (transformY > 0 && stripe > 0 && stripe < SCREEN_WIDTH &&
+          transformY < _Zbuffer[stripe]) {
+        sprite.getTex().drawStrip(rend, drawStartY, drawEndY, texX, stripe);
+      }
+    }
+  }
 }
