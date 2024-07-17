@@ -1,24 +1,27 @@
-#ifndef ENTITY_HPP
-#define ENTITY_HPP
+#ifndef PLAYER_HPP
+#define PLAYER_HPP
 
-#include "Map.hpp"
-#include "Renderer.hpp"
-#include "Sprite.hpp"
-#include "Window.hpp"
 #include <vector>
 
-class Entity {
+#include "Texture.hpp"
+#include "Window.hpp"
+
+class Map;
+class Sprite;
+
+class Player {
 public:
-  Entity();
-  Entity(double x, double y);
-  Entity(const Entity &other);
-  ~Entity();
-  Entity &operator=(const Entity &other);
+  Player();
+  Player(double x, double y);
+  Player(const Player &other);
+  ~Player();
+  Player &operator=(const Player &other);
 
   double getX() const;
   double getY() const;
   void setX(double x);
   void setY(double y);
+  void setPos(double x, double y);
   void move(double deltaX, double deltaY);
   void render();
   void raycast(Rend &rend, Map &map);
@@ -35,11 +38,11 @@ private:
   void sortSprites(std::vector<Sprite> &spriteVec);
 
 private:
+  double _posX;
+  double _posY;
   double _Zbuffer[SCREEN_WIDTH];
   double _moveSpeed;
   double _rotSpeed;
-  double _posX;
-  double _posY;
   double _dirX;
   double _dirY;
   double _planX;

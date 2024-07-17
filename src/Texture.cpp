@@ -1,12 +1,12 @@
-#include "Texture.hpp"
-#include "Window.hpp"
-#include "XpmData.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include <raylib.h>
 #include <string>
+
+#include "Texture.hpp"
+#include "Window.hpp"
+#include "XpmData.hpp"
 
 Texture::Texture(void) : _width(0), _height(0), _tex(nullptr) {}
 
@@ -77,10 +77,18 @@ rl::Color Texture::getPixColor(int x, int y) {
 uint32_t Texture::getPix(int x, int y) { return _tex[y * _width + x]; }
 
 void Texture::draw(Rend &rend, int posX, int posY) {
-  for (size_t y = 0; y < _height; y++) {
-    for (size_t x = 0; x < _width; x++) {
-      /*rl::DrawPixel(posX + x, posY + y, uint32ToRGBA(_tex[y * _width + x]));*/
+  for (int y = 0; y < (int)_height; y++) {
+    for (int x = 0; x < (int)_width; x++) {
       rend.putPixel(posX + x, posY + y, _tex[y * _width + x]);
+    }
+  }
+}
+
+void Texture::drawPart(Rend &rend, int texX, int texY, int w, int h, int posX,
+                       int posY) {
+  for (int y = texY; y < (int)_height && y < texY + h; y++) {
+    for (int x = texX; x < (int)_width && x < texX + w; x++) {
+      rend.putPixel(posX + x - texX, posY + y - texY, _tex[y * _width + x]);
     }
   }
 }

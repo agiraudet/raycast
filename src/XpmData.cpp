@@ -87,6 +87,7 @@ bool XpmData::_readHeader(void) {
     std::cerr << "XpmData: Could not find header." << std::endl;
     return false;
   }
+  std::cout << _headerPos << std::endl;
   std::istringstream headerStream(_rawData[_headerPos]);
   headerStream.ignore(1);
   headerStream >> _width >> _height >> _nColors >> _charPerPixel;
@@ -104,6 +105,7 @@ bool XpmData::_readColorMap(void) {
     std::cerr << "XpmData: Could not find color map." << std::endl;
     return false;
   }
+  std::cout << _colorMapPos << std::endl;
   for (size_t i = 0; i < _nColors; i++) {
     std::string colorEntry = _rawData[i + _colorMapPos];
     std::string colorSymbol = colorEntry.substr(1, _charPerPixel);
@@ -118,16 +120,17 @@ bool XpmData::_readColorMap(void) {
 }
 
 bool XpmData::_readData(void) {
-  _dataPos = _colorMapPos + _colorMap.size() + 1;
+  _dataPos = _colorMapPos + _colorMap.size();
   while (_dataPos < _rawData.size() && _rawData[_dataPos][0] != '"')
     _dataPos++;
   if (_dataPos >= _rawData.size()) {
     std::cerr << "XpmData: Could not find data." << std::endl;
     return false;
   }
-  for (int y = 0; y < _height; y++) {
+  std::cout << _dataPos << std::endl;
+  for (size_t y = 0; y < _height; y++) {
     std::string row = _rawData[_dataPos + y];
-    for (int x = 0; x < _width; x++) {
+    for (size_t x = 0; x < _width; x++) {
       if (row[0] == '"') {
         std::string pixelSymbol =
             row.substr(x * _charPerPixel + 1, _charPerPixel);

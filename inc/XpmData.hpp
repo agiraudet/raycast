@@ -34,9 +34,9 @@ private:
   size_t _headerPos;
   size_t _colorMapPos;
   size_t _dataPos;
-  uint32_t *_data;
   std::unordered_map<std::string, uint32_t> _colorMap;
   std::vector<std::string> _rawData;
+  uint32_t *_data;
 };
 
 #endif // !XPMDATA_HPP

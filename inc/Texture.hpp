@@ -1,12 +1,11 @@
 #ifndef TEXTURE_HPP
 #define TEXTURE_HPP
 
-#include <string>
-
-#include "RaylibWrapper.hpp"
-#include "Renderer.hpp"
 #include <cstddef>
 #include <cstdint>
+#include <string>
+
+#include "Renderer.hpp"
 
 class Texture {
 public:
@@ -25,6 +24,8 @@ public:
   rl::Color getPixColor(int x, int y);
   uint32_t getPix(int x, int y);
   void draw(Rend &rend, int posX, int posY);
+  void drawPart(Rend &rend, int texX, int texY, int w, int h, int posX,
+                int posY);
   void drawStrip(Rend &rend, int drawStart, int drawEnd, int texX, int destX);
   void drawStrip(Rend &rend, int drawStart, int drawEnd, int texX, int destX,
                  int lumMod);
@@ -32,11 +33,10 @@ public:
 private:
   void _resize();
 
-private:
+protected:
   size_t _width;
   size_t _height;
   uint32_t *_tex;
 };
 
 #endif // !TEXTURE_HPP
-#define TEXTURE_HPP

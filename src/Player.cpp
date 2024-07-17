@@ -1,53 +1,70 @@
-#include "Entity.hpp"
+#include "Player.hpp"
+#include "Map.hpp"
+
 #include "Window.hpp"
 #include <algorithm>
 #include <cstdlib>
-#include <iostream>
 #include <math.h>
 #include <vector>
 
-Entity::Entity() : _posX(0.0), _posY(0.0) {}
+Player::Player()
+    : _posX(0.0), _posY(0.0), _moveSpeed(0.2), _rotSpeed(0.1), _dirX(-1),
+      _dirY(0), _planX(0), _planY(0.66) {}
 
-Entity::Entity(double x, double y)
-    : _moveSpeed(0.3), _rotSpeed(0.1), _posX(x), _posY(y), _dirX(-1), _dirY(0),
+Player::Player(double x, double y)
+    : _posX(x), _posY(y), _moveSpeed(0.2), _rotSpeed(0.1), _dirX(-1), _dirY(0),
       _planX(0), _planY(0.66) {}
 
-Entity::Entity(const Entity &other) : _posX(other._posX), _posY(other._posY) {}
+Player::Player(const Player &other)
+    : _posX(other._posX), _posY(other._posY), _moveSpeed(other._moveSpeed),
+      _rotSpeed(other._rotSpeed), _dirX(other._dirX), _dirY(other._dirY),
+      _planX(other._planX), _planY(other._planY) {}
 
-Entity::~Entity() {}
+Player::~Player() {}
 
-Entity &Entity::operator=(const Entity &other) {
+Player &Player::operator=(const Player &other) {
   if (this == &other) {
     return *this;
   }
   _posX = other._posX;
   _posY = other._posY;
+  _moveSpeed = other._moveSpeed;
+  _rotSpeed = other._rotSpeed;
+  _dirX = other._dirX;
+  _dirY = other._dirY;
+  _planX = other._planX;
+  _planY = other._planY;
   return *this;
 }
 
-double Entity::getX() const { return _posX; }
+double Player::getX() const { return _posX; }
 
-double Entity::getY() const { return _posY; }
+double Player::getY() const { return _posY; }
 
-void Entity::setX(double x) { _posX = x; }
+void Player::setX(double x) { _posX = x; }
 
-void Entity::setY(double y) { _posY = y; }
+void Player::setY(double y) { _posY = y; }
 
-void Entity::move(double deltaX, double deltaY) {
+void Player::setPos(double x, double y) {
+  _posX = x;
+  _posY = y;
+}
+
+void Player::move(double deltaX, double deltaY) {
   _posX += deltaX;
   _posY += deltaY;
 }
 
-void Entity::render(void) { DrawCircle(_posX, _posY, 20., rl::RED); }
+void Player::render(void) { DrawCircle(_posX, _posY, 20., rl::RED); }
 
-void Entity::raycast(Rend &rend, Map &map) {
-  castFloor(rend, map.getTex('f'), map.getTex('c'));
+void Player::raycast(Rend &rend, Map &map) {
+  castFloor(rend, map.getTex('.'), map.getTex(','));
   for (int x = 0; x < SCREEN_WIDTH; x++) {
     _emitRay(rend, map, x);
   }
 }
 
-void Entity::rotate(int dir) {
+void Player::rotate(int dir) {
   /*dir = dir > 0 ? 1 : -1;*/
   double odlDirX = _dirX;
   _dirX = _dirX * cos(_rotSpeed * dir) - _dirY * sin(_rotSpeed * dir);
@@ -57,7 +74,7 @@ void Entity::rotate(int dir) {
   _planY = oldPlanX * sin(_rotSpeed * dir) + _planY * cos(_rotSpeed * dir);
 }
 
-void Entity::move(Map &map) {
+void Player::move(Map &map) {
   if (IsKeyDown(rl::KEY_W)) {
     if (map.at(_posX + _dirX * _moveSpeed, _posY) == '.')
       _posX += _dirX * _moveSpeed;
@@ -94,7 +111,7 @@ void Entity::move(Map &map) {
   }
 }
 
-void Entity::castFloor(Rend &rend, Texture &texFloor, Texture &texCeil) {
+void Player::castFloor(Rend &rend, Texture &texFloor, Texture &texCeil) {
   for (int y = 0; y < SCREEN_HEIGHT; y++) {
     float rayDirX0 = _dirX - _planX;
     float rayDirY0 = _dirY - _planY;
@@ -116,13 +133,14 @@ void Entity::castFloor(Rend &rend, Texture &texFloor, Texture &texCeil) {
                (texFloor.getHeight() - 1);
       floorX += floorStepX;
       floorY += floorStepY;
-      rend.putPixel(x, y, texFloor.getPix(tx, ty));
-      rend.putPixel(x, SCREEN_HEIGHT - y - 1, texCeil.getPix(tx, ty));
+      rend.putPixel(x, y, rend.reduceLum(texFloor.getPix(tx, ty), 2));
+      rend.putPixel(x, SCREEN_HEIGHT - y - 1,
+                    rend.reduceLum(texCeil.getPix(tx, ty), 2));
     }
   }
 }
 
-double Entity::_emitRay(Rend &rend, Map &map, int x) {
+double Player::_emitRay(Rend &rend, Map &map, int x) {
   double cameraX = 2 * x / double(SCREEN_WIDTH) - 1;
   double rayDirX = _dirX + _planX * cameraX;
   double rayDirY = _dirY + _planY * cameraX;
@@ -179,7 +197,7 @@ double Entity::_emitRay(Rend &rend, Map &map, int x) {
   return 0;
 }
 
-void Entity::_drawStrip(Rend &rend, double perpWallDist, int texX, Texture &tex,
+void Player::_drawStrip(Rend &rend, double perpWallDist, int texX, Texture &tex,
                         int side, int x) {
   int lineHeight = (int)(SCREEN_HEIGHT / perpWallDist);
   int drawStart = -lineHeight / 2 + SCREEN_HEIGHT / 2;
@@ -191,7 +209,7 @@ void Entity::_drawStrip(Rend &rend, double perpWallDist, int texX, Texture &tex,
     tex.drawStrip(rend, drawStart, drawEnd, texX, x);
 }
 
-void Entity::sortSprites(std::vector<Sprite> &spriteVec) {
+void Player::sortSprites(std::vector<Sprite> &spriteVec) {
   for (auto &sprite : spriteVec) {
     double dist = ((_posX - sprite.getX()) * (_posX - sprite.getX()) +
                    (_posY - sprite.getY()) * (_posY * sprite.getY()));
@@ -201,7 +219,7 @@ void Entity::sortSprites(std::vector<Sprite> &spriteVec) {
             [](Sprite &a, Sprite &b) { return a.getDist() > b.getDist(); });
 }
 
-void Entity::drawSprite(Rend &rend, std::vector<Sprite> &spriteVec) {
+void Player::drawSprite(Rend &rend, std::vector<Sprite> &spriteVec) {
   sortSprites(spriteVec);
 
   for (auto &sprite : spriteVec) {

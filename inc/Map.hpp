@@ -1,10 +1,13 @@
 #ifndef MAP_HPP
 #define MAP_HPP
 
-#include "Texture.hpp"
-#include <cstddef>
 #include <string>
 #include <unordered_map>
+#include <vector>
+
+#include "Player.hpp"
+#include "Sprite.hpp"
+#include "Texture.hpp"
 
 #define CELL_SIZE 40
 
@@ -23,12 +26,22 @@ public:
   void render(size_t cellSize, size_t posX, size_t posY);
   Texture &getTex(char c);
   void setTex(char c, Texture tex);
+  Player &getPlayer(void);
+  void drawSprites(Rend &rend);
+
+private:
+  void _loadFromFile(const std::string &filePath);
+  void _loadTexFromLines(const std::vector<std::string> &lines);
+  void _loadMapFromLines(const std::vector<std::string> &lines);
+  void _initMapContent(void);
 
 private:
   size_t _width;
   size_t _height;
   char *_tiles;
   std::unordered_map<char, Texture> _texMap;
+  std::vector<Sprite> _sprtVec;
+  Player _player;
 };
 
 #endif

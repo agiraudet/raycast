@@ -5,11 +5,11 @@
 
 class Sprite {
 public:
-  Sprite(Texture tex, int x, int y);
+  Sprite(Texture tex, double x, double y);
   ~Sprite();
 
-  inline int getX(void) { return _x; }
-  inline int getY(void) { return _y; }
+  inline double getX(void) { return _x; }
+  inline double getY(void) { return _y; }
   inline Texture &getTex(void) { return _tex; }
   inline int getTexWidth(void) { return _tex.getWidth(); }
   inline int getTexHeight(void) { return _tex.getHeight(); }
@@ -18,8 +18,8 @@ public:
 
 private:
   Texture _tex;
-  int _x;
-  int _y;
+  double _x;
+  double _y;
   double _dist;
 };
 
