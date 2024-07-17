@@ -46,7 +46,44 @@ Map &Map::operator=(const Map &other) {
 
 Player &Map::getPlayer(void) { return _player; }
 
-void Map::drawSprites(Rend &rend) { _player.drawSprite(rend, _sprtVec); }
+void Map::drawSprites(Rend &rend) {
+  Sprite::sortVec(_sprtVec, _player);
+
+  for (auto &sprite : _sprtVec) {
+    sprite.draw(rend, _player);
+  }
+}
+
+void Map::drawFloor(Rend &rend) {
+  Texture &texFloor = _texMap['.'];
+  Texture &texCeil = _texMap[','];
+  for (int y = 0; y < SCREEN_HEIGHT; y++) {
+    float rayDirX0 = _player.getDirX() - _player.getPlanX();
+    float rayDirY0 = _player.getDirY() - _player.getPlanY();
+    float rayDirX1 = _player.getDirX() + _player.getPlanX();
+    float rayDirY1 = _player.getDirY() + _player.getPlanY();
+    int p = y - SCREEN_HEIGHT / 2;
+    float posZ = 0.5 * SCREEN_HEIGHT;
+    float rowDist = posZ / p;
+    float floorStepX = rowDist * (rayDirX1 - rayDirX0) / SCREEN_WIDTH;
+    float floorStepY = rowDist * (rayDirY1 - rayDirY0) / SCREEN_WIDTH;
+    float floorX = _player.getPosX() + rowDist * rayDirX0;
+    float floorY = _player.getPosY() + rowDist * rayDirY0;
+    for (int x = 0; x < SCREEN_WIDTH; x++) {
+      int cellX = (int)(floorX);
+      int cellY = (int)(floorY);
+      int tx = (int)(texFloor.getWidth() * (floorX - cellX)) &
+               (texFloor.getWidth() - 1);
+      int ty = (int)(texFloor.getHeight() * (floorY - cellY)) &
+               (texFloor.getHeight() - 1);
+      floorX += floorStepX;
+      floorY += floorStepY;
+      rend.putPixel(x, y, rend.reduceLum(texFloor.getPix(tx, ty), 2));
+      rend.putPixel(x, SCREEN_HEIGHT - y - 1,
+                    rend.reduceLum(texCeil.getPix(tx, ty), 2));
+    }
+  }
+}
 
 void Map::_loadFromFile(const std::string &filePath) {
   std::ifstream file(filePath);

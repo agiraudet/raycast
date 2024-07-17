@@ -21,12 +21,14 @@ int main(int argc, char **argv) {
 
   while (!rl::WindowShouldClose()) {
     plr.move(map);
+    map.drawFloor(rend);
     plr.raycast(rend, map);
     map.drawSprites(rend);
     rend.render();
   }
   return 0;
 }
+
 /*int main2(int argc, char **argv) {*/
 /*  if (argc < 6) {*/
 /*    std::cerr << "Need an vl file and a few tex file :" << std::endl*/

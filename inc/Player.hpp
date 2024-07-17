@@ -1,8 +1,6 @@
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
-#include <vector>
-
 #include "Texture.hpp"
 #include "Window.hpp"
 
@@ -17,8 +15,13 @@ public:
   ~Player();
   Player &operator=(const Player &other);
 
-  double getX() const;
-  double getY() const;
+  inline double getPosX(void) { return _posX; };
+  inline double getPosY(void) { return _posY; };
+  inline double getDirX(void) { return _dirX; };
+  inline double getDirY(void) { return _dirY; };
+  inline double getPlanX(void) { return _planX; };
+  inline double getPlanY(void) { return _planY; };
+  inline double getZVal(int i) { return _Zbuffer[i]; }
   void setX(double x);
   void setY(double y);
   void setPos(double x, double y);
@@ -27,15 +30,11 @@ public:
   void raycast(Rend &rend, Map &map);
   void rotate(int dir);
   void move(Map &map);
-  void drawSprite(Rend &rend, std::vector<Sprite> &spriteVec);
 
 private:
   double _emitRay(Rend &rend, Map &map, int x);
-  /*void _drawStrip(double perpWallDist, int side, int x);*/
   void _drawStrip(Rend &rend, double perpWallDist, int texX, Texture &tex,
                   int side, int x);
-  void castFloor(Rend &rend, Texture &texFloor, Texture &texCeil);
-  void sortSprites(std::vector<Sprite> &spriteVec);
 
 private:
   double _posX;

@@ -28,6 +28,7 @@ public:
   void setTex(char c, Texture tex);
   Player &getPlayer(void);
   void drawSprites(Rend &rend);
+  void drawFloor(Rend &rend);
 
 private:
   void _loadFromFile(const std::string &filePath);
