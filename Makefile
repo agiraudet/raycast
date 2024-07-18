@@ -21,6 +21,7 @@ OBJS			:=	$(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 
 INC_FLAGS	:=	$(addprefix -I, $(INC_DIR))
 
+# CXXFLAGS	:=	-MD -Wall -Wextra -Werror $(INC_FLAGS) -O3
 CXXFLAGS	:=	-MD -Wall -Wextra -Werror $(INC_FLAGS) -g
 
 CXX				:=	g++

@@ -47,7 +47,7 @@ rl::Color Rend::reduceLum(uint32_t color, int lumMod) {
 }
 
 void Rend::putPixel(int x, int y, uint32_t color) {
-  if (x >= _width || x < 0 || y >= _height || y < 0)
+  if (x >= _width || x < 0 || y >= _height || y < 0 || color == 0)
     return;
   rl::Color &col = _buf[y * _width + x];
   col.r = (color >> 16) & 0xFF;

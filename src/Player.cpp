@@ -158,7 +158,7 @@ void Player::_drawStrip(Rend &rend, double perpWallDist, int texX, Texture &tex,
   // TEST
   //
   int newdrawStart;
-  int nRepeat = 6;
+  int nRepeat = 0;
   for (int i = 0; i < nRepeat; i++) {
     newdrawStart = drawStart - (drawEnd - drawStart);
     drawEnd = drawStart;

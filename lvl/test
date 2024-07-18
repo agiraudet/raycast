@@ -9,7 +9,8 @@
 #Madatory:
 . tex/floor.xpm
 , tex/ceilling.xpm
-S tex/pnj.xpm
+# S tex/pnj.xpm
+S tex/warped_roots.xpm
 #Custom:
 1 tex/wall1.xpm
 2 tex/wall2.xpm

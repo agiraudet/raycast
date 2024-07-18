@@ -2,6 +2,7 @@
 #include <iostream>
 #include <ostream>
 
+#include "Anim.hpp"
 #include "Map.hpp"
 #include "Player.hpp"
 #include "Renderer.hpp"
@@ -18,12 +19,18 @@ int main(int argc, char **argv) {
   rl::SetTargetFPS(30);
   Rend rend;
   Player &plr = map.getPlayer();
+  Anim gun("tex/shoot2.xpm", 5);
+  gun.setFps(30);
 
   while (!rl::WindowShouldClose()) {
+    if (IsKeyDown(rl::KEY_SPACE))
+      gun.playOnce();
     plr.move(map);
     map.drawFloor(rend);
     plr.raycast(rend, map);
     map.drawSprites(rend);
+    gun.update(rend, SCREEN_WIDTH / 2 - gun.getFrameWidth() / 2,
+               SCREEN_HEIGHT - gun.getFrameHeight() - 1);
     rend.render();
   }
   return 0;
